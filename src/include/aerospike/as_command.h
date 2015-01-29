@@ -56,6 +56,7 @@
 #define AS_PARTICLE_TYPE_BLOB 4
 #define AS_PARTICLE_TYPE_MAP 19
 #define AS_PARTICLE_TYPE_LIST 20
+#define AS_PARTICLE_TYPE_GEOJSON 23
 
 // Message info1 bits
 #define AS_MSG_INFO1_READ				(1 << 0) // contains a read operation
