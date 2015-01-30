@@ -49,12 +49,12 @@ static as_bin * as_bin_defaults(as_bin * bin, const as_bin_name name, as_bin_val
  *
  *	~~~~~~~~~~{.c}
  *		as_bin bin;
- * 		as_bin_init(&bin, "bin1", as_integer_new(123));
+ *		as_bin_init(&bin, "bin1", as_integer_new(123));
  *	~~~~~~~~~~
  *
  *	Use `as_bin_destroy()` to free the resources allocated by this function.
  *
- *	@param bin 		The `as_bin` to initialize.
+ *	@param bin		The `as_bin` to initialize.
  *	@param name		The name of the bin.
  *	@param value	The value of the bin.
  *
@@ -72,12 +72,12 @@ as_bin * as_bin_init(as_bin * bin, const as_bin_name name, as_bin_value * value)
  *
  *	~~~~~~~~~~{.c}
  *		as_bin bin;
- *	    as_bin_init_int64(&key, "abc", 123);
+ *		as_bin_init_int64(&key, "abc", 123);
  *	~~~~~~~~~~
  *
  *	Use `as_bin_destroy()` to release resources allocated to `as_bin`.
  *
- *	@param name 	The name of the bin.
+ *	@param name		The name of the bin.
  *	@param value	The value of the value.
  *
  *	@return The initialized `as_bin` on success. Otherwise NULL.
@@ -94,12 +94,12 @@ as_bin * as_bin_init_int64(as_bin * bin, const as_bin_name name, int64_t value)
  *
  *	~~~~~~~~~~{.c}
  *		as_bin bin;
- *	    as_bin_init_str(&key, "abc", "def");
+ *		as_bin_init_str(&key, "abc", "def");
  *	~~~~~~~~~~
  *
  *	Use `as_bin_destroy()` to release resources allocated to `as_bin`.
  *
- *	@param name 	The name of the bin.
+ *	@param name		The name of the bin.
  *	@param value	The value of the value.
  *
  *	@return The initialized `as_bin` on success. Otherwise NULL.
@@ -112,18 +112,40 @@ as_bin * as_bin_init_str(as_bin * bin, const as_bin_name name, const char * valu
 }
 
 /**
+ *	Initialize a stack allocated `as_bin` to a NULL-terminated GeoJSON string value.
+ *
+ *	~~~~~~~~~~{.c}
+ *		as_bin bin;
+ *		as_bin_init_geojson(&key, "abc", "def");
+ *	~~~~~~~~~~
+ *
+ *	Use `as_bin_destroy()` to release resources allocated to `as_bin`.
+ *
+ *	@param name		The name of the bin.
+ *	@param value	The value of the value.
+ *
+ *	@return The initialized `as_bin` on success. Otherwise NULL.
+ */
+as_bin * as_bin_init_geojson(as_bin * bin, const as_bin_name name, const char * value, bool free)
+{
+	if ( !bin ) return bin;
+	as_geojson_init((as_geojson *) &bin->value, (char *) value, free);
+	return as_bin_defaults(bin, name, &bin->value);
+}
+
+/**
  *	Initialize a stack allocated `as_key` to a raw bytes value.
  *
  *	~~~~~~~~~~{.c}
  *		uint8_t rgb[3] = {254,254,120};
  *
  *		as_bin bin;
- *	    as_bin_init_str(&key, "abc", rgb, 3);
+ *		as_bin_init_str(&key, "abc", rgb, 3);
  *	~~~~~~~~~~
  *
  *	Use `as_bin_destroy()` to release resources allocated to `as_bin`.
  *
- *	@param name 	The name of the bin.
+ *	@param name		The name of the bin.
  *	@param value	The value of the value.
  *
  *	@return The initialized `as_bin` on success. Otherwise NULL.
@@ -143,12 +165,12 @@ as_bin * as_bin_init_raw(as_bin * bin, const as_bin_name name, const uint8_t * v
  *		as_string_init(&str, "abc", false);
  *
  *		as_bin bin;
- *	    as_bin_init_str(&key, "abc", (as_key_value *) str);
+ *		as_bin_init_str(&key, "abc", (as_key_value *) str);
  *	~~~~~~~~~~
  *
  *	Use `as_bin_destroy()` to release resources allocated to `as_bin`.
  *
- *	@param name 	The name of the bin.
+ *	@param name		The name of the bin.
  *	@param value	The value of the value.
  *
  *	@return The initialized `as_bin` on success. Otherwise NULL.
@@ -167,7 +189,7 @@ as_bin * as_bin_init_nil(as_bin * bin, const as_bin_name name)
  *	Destroy the given `as_bin` and associated resources.
  *
  *	~~~~~~~~~~{.c}
- * 		as_bin_destroy(bin);
+ *		as_bin_destroy(bin);
  *	~~~~~~~~~~
  *
  *	@param bin The `as_bin` to destroy.
@@ -194,14 +216,14 @@ void as_bin_destroy(as_bin * bin)
  *
  *	~~~~~~~~~~{.c}
  *		as_bins bins;
- * 		as_bins_init(&bins, 2);
+ *		as_bins_init(&bins, 2);
  *		as_bins_append(&bins, "bin1", as_integer_new(123));
  *		as_bins_append(&bins, "bin2", as_integer_new(456));
  *	~~~~~~~~~~
  *
  *	Use `as_bins_destroy()` to free the resources allocated by this function.
  *
- *	@param bins 		The `as_bins` to initialize.
+ *	@param bins			The `as_bins` to initialize.
  *	@param capacity		The number of `as_bins.entries` to allocate on the heap.
  *
  *	@return The initialized `as_bins` on success. Otherwsie NULL.
@@ -231,10 +253,10 @@ as_bins * as_bins_init(as_bins * bins, uint16_t capacity)
  *	Destroy the `as_bins` and associated resources.
  *
  *	~~~~~~~~~~{.c}
- * 		as_bins_destroy(bins);
+ *		as_bins_destroy(bins);
  *	~~~~~~~~~~
  *
- *	@param bins 	The `as_bins` to destroy.
+ *	@param bins		The `as_bins` to destroy.
  */
 void as_bins_destroy(as_bins * bins)
 {
@@ -252,9 +274,9 @@ void as_bins_destroy(as_bins * bins)
 /**
  *	Append a bin to the sequence of bins.
  *
- *	@param bins 		The `as_bins` to append the bin to.
- *	@param name 		The name of the bin to append.
- *	@param value 		The value of the bin to append.
+ *	@param bins			The `as_bins` to append the bin to.
+ *	@param name			The name of the bin to append.
+ *	@param value		The value of the bin to append.
  *
  *	@return true on success. Otherswise an error occurred.
  */
@@ -267,6 +289,10 @@ bool as_bins_append(as_bins * bins, as_bin_name name, as_bin_value * value)
 	return true;
 }
 
-
-
-
+// Local Variables:
+// mode: C
+// c-basic-offset: 4
+// tab-width: 4
+// indent-tabs-mode: t
+// End:
+// vim: tabstop=4:shiftwidth=4

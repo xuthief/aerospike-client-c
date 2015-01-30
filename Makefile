@@ -136,6 +136,7 @@ COMMON-HEADERS += $(COMMON)/$(SOURCE_INCL)/aerospike/as_password.h
 COMMON-HEADERS += $(COMMON)/$(SOURCE_INCL)/aerospike/as_rec.h
 COMMON-HEADERS += $(COMMON)/$(SOURCE_INCL)/aerospike/as_stream.h
 COMMON-HEADERS += $(COMMON)/$(SOURCE_INCL)/aerospike/as_string.h
+COMMON-HEADERS += $(COMMON)/$(SOURCE_INCL)/aerospike/as_geojson.h
 COMMON-HEADERS += $(COMMON)/$(SOURCE_INCL)/aerospike/as_stringmap.h
 COMMON-HEADERS += $(COMMON)/$(SOURCE_INCL)/aerospike/as_util.h
 COMMON-HEADERS += $(COMMON)/$(SOURCE_INCL)/aerospike/as_val.h
@@ -215,3 +216,10 @@ $(TARGET)/old-include/citrusleaf/%.h:: $(SOURCE_INCL)/citrusleaf/%.h | $(TARGET_
 
 ###############################################################################
 include project/modules.mk project/test.mk project/docs.mk project/rules.mk
+
+# Local Variables:
+# mode: Makefile
+# tab-width: 4
+# indent-tabs-mode: t
+# End:
+# vim: tabstop=4:shiftwidth=4

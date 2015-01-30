@@ -24,6 +24,7 @@
 #include <aerospike/as_map.h>
 #include <aerospike/as_rec.h>
 #include <aerospike/as_string.h>
+#include <aerospike/as_geojson.h>
 #include <aerospike/as_util.h>
 #include <aerospike/as_val.h>
 
@@ -98,17 +99,18 @@
  *	The following are functions for setting values in bins of a record. Utilize 
  *	the appropriate setter for the data you want to store in a bin.
  *
- *   Function                    |  Description
+ *	 Function					 |	Description
  *	---------------------------- | ----------------------------------------------
- *	 `as_record_set_int64()`     | Set the bin value to a 64-bit integer.
- *	 `as_record_set_str()`       | Set the bin value to a NULL-terminated string.
- *	 `as_record_set_integer()`   | Set the bin value to an `as_integer`.
- *	 `as_record_set_string()`    | Set the bin value to an `as_string`.
- *	 `as_record_set_bytes()`     | Set the bin value to an `as_bytes`.
- *	 `as_record_set_list()`      | Set the bin value to an `as_list`.                    
- *	 `as_record_set_map()`       | Set the bin value to an `as_map`.
- *	 `as_record_set_nil()`       | Set the bin value to an `as_nil`.
- *	 `as_record_set()`           | Set the bin value to an `as_bin_value`.
+ *	 `as_record_set_int64()`	 | Set the bin value to a 64-bit integer.
+ *	 `as_record_set_str()`		 | Set the bin value to a NULL-terminated string.
+ *	 `as_record_set_integer()`	 | Set the bin value to an `as_integer`.
+ *	 `as_record_set_string()`	 | Set the bin value to an `as_string`.
+ *	 `as_record_set_geojson()`	 | Set the bin value to an `as_geojson`.
+ *	 `as_record_set_bytes()`	 | Set the bin value to an `as_bytes`.
+ *	 `as_record_set_list()`		 | Set the bin value to an `as_list`.					 
+ *	 `as_record_set_map()`		 | Set the bin value to an `as_map`.
+ *	 `as_record_set_nil()`		 | Set the bin value to an `as_nil`.
+ *	 `as_record_set()`			 | Set the bin value to an `as_bin_value`.
  *
  *	## Getting Bin Values
  *
@@ -116,16 +118,17 @@
  *	Utilize the appropriate getter for the data you want to read from a bin.
  *	
  *
- *   Function                    |  Description
+ *	 Function					 |	Description
  *	---------------------------- | ----------------------------------------------
- *	 `as_record_get_int64()`     | Get the bin as a 64-bit integer.
- *	 `as_record_get_str()`       | Get the bin as a NULL-terminated string.
- *	 `as_record_get_integer()`   | Get the bin as an `as_integer`.
- *	 `as_record_get_string()`    | Get the bin as an `as_string`.
- *	 `as_record_get_bytes()`     | Get the bin as an `as_bytes`.
- *	 `as_record_get_list()`      | Get the bin as an `as_list`. 
- *	 `as_record_get_map()`       | Get the bin as an `as_map`.
- *	 `as_record_get()`           | Get the bin as an `as_bin_value`.
+ *	 `as_record_get_int64()`	 | Get the bin as a 64-bit integer.
+ *	 `as_record_get_str()`		 | Get the bin as a NULL-terminated string.
+ *	 `as_record_get_integer()`	 | Get the bin as an `as_integer`.
+ *	 `as_record_get_string()`	 | Get the bin as an `as_string`.
+ *	 `as_record_get_geojson()`	 | Get the bin as an `as_geojson`.
+ *	 `as_record_get_bytes()`	 | Get the bin as an `as_bytes`.
+ *	 `as_record_get_list()`		 | Get the bin as an `as_list`. 
+ *	 `as_record_get_map()`		 | Get the bin as an `as_map`.
+ *	 `as_record_get()`			 | Get the bin as an `as_bin_value`.
  *
  *	If you are unsure of the type of data stored in the bin, then you should 
  *	use `as_record_get()`. You can then check the type of the value using
@@ -137,6 +140,7 @@
  *		case AS_NIL: break;
  *		case AS_INTEGER: break;
  *		case AS_STRING: break;
+ *		case AS_GEOJSON: break;
  *		case AS_BYTES: break;
  *		case AS_LIST: break;
  *		case AS_MAP: break;
@@ -180,10 +184,10 @@ typedef struct as_record_s {
 	 *	The time-to-live (expiration) of the record in seconds.
 	 *	There are two special values that can be set in the record TTL:
 	 *	(*) ZERO (defined as AS_RECORD_DEFAULT_TTL), which means that the
-	 *	    record will adopt the default TTL value from the namespace.
+	 *		record will adopt the default TTL value from the namespace.
 	 *	(*) 0xFFFFFFFF (also, -1 in a signed 32 bit int)
-	 *	    (defined as AS_RECORD_NO_EXPIRE_TTL), which means that the record
-	 *	    will get an internal "void_time" of zero, and thus will never expire.
+	 *		(defined as AS_RECORD_NO_EXPIRE_TTL), which means that the record
+	 *		will get an internal "void_time" of zero, and thus will never expire.
 	 *
 	 *	Note that the TTL value will be employed ONLY on write/update calls.
 	 */
@@ -256,7 +260,7 @@ typedef struct as_record_s {
  *	When you are finished using the `as_record` instance, you should release the 
  *	resources allocated to it by calling `as_record_destroy()`.
  *
- *	@param nbins 	The number of bins to initialize. Set to 0, if unknown.
+ *	@param nbins	The number of bins to initialize. Set to 0, if unknown.
  *
  *	@return a pointer to the new as_record if successful, otherwise NULL.
  *
@@ -373,6 +377,44 @@ static inline bool as_record_set_str(as_record * rec, const as_bin_name name, co
 }
 
 /**
+ *	Set specified bin's value to an NULL terminated GeoJSON string.
+ *
+ *	~~~~~~~~~~{.c}
+ *	as_record_set_geojson_strp(rec, "bin", strdup("abc"), true);
+ *	~~~~~~~~~~
+ *
+ *	@param rec		The record containing the bin.
+ *	@param name		The name of the bin.
+ *	@param value	The value of the bin.
+ *	@param free		If true, then the value will be freed when the record is destroyed.
+ *
+ *	@return true on success, false on failure.
+ *
+ *	@relates as_record
+ */
+bool as_record_set_geojson_strp(as_record * rec, const as_bin_name name, const char * value, bool free);
+
+/**
+ *	Set specified bin's value to an NULL terminated GeoJSON string.
+ *
+ *	~~~~~~~~~~{.c}
+ *	as_record_set_geojson_str(rec, "bin", "abc");
+ *	~~~~~~~~~~
+ *
+ *	@param rec		The record containing the bin.
+ *	@param name		The name of the bin.
+ *	@param value	The value of the bin. Must last for the lifetime of the record.
+ *
+ *	@return true on success, false on failure.
+ *
+ *	@relates as_record
+ */
+static inline bool as_record_set_geojson_str(as_record * rec, const as_bin_name name, const char * value)
+{
+	return as_record_set_geojson_strp(rec, name, value, false);
+}
+
+/**
  *	Set specified bin's value to an NULL terminated string.
  *
  *	~~~~~~~~~~{.c}
@@ -412,7 +454,7 @@ bool as_record_set_rawp(as_record * rec, const as_bin_name name, const uint8_t *
  *	@param name		The name of the bin.
  *	@param value	The value of the bin.
  *	@param size		The size of the value.
- *	@param type 	The as_bytes_type designation (AS_BYTES_*)
+ *	@param type		The as_bytes_type designation (AS_BYTES_*)
  *	@param free		If true, then the value will be freed when the record is destroyed.
  *
  *	@return true on success, false on failure.
@@ -476,6 +518,23 @@ bool as_record_set_integer(as_record * rec, const as_bin_name name, as_integer *
  *	@relates as_record
  */
 bool as_record_set_string(as_record * rec, const as_bin_name name, as_string * value);
+
+/**
+ *	Set specified bin's value to an as_geojson.
+ *
+ *	~~~~~~~~~~{.c}
+ *	as_record_set_geojson(rec, "bin", as_geojson_new("abc", false));
+ *	~~~~~~~~~~
+ *
+ *	@param rec		The record containing the bin.
+ *	@param name		The name of the bin.
+ *	@param value	The value of the bin.
+ *
+ *	@return true on success, false on failure.
+ *
+ *	@relates as_record
+ */
+bool as_record_set_geojson(as_record * rec, const as_bin_name name, as_geojson * value);
 
 /**
  *	Set specified bin's value to an as_bytes.
@@ -606,6 +665,22 @@ int64_t as_record_get_int64(const as_record * rec, const as_bin_name name, int64
 char * as_record_get_str(const as_record * rec, const as_bin_name name);
 
 /**
+ *	Get specified bin's value as an NULL terminated GeoJSON string.
+ *
+ *	~~~~~~~~~~{.c}
+ *	char * value = as_record_get_geojson_str(rec, "bin");
+ *	~~~~~~~~~~
+ *
+ *	@param rec		The record containing the bin.
+ *	@param name		The name of the bin.
+ *
+ *	@return the value if it exists, otherwise NULL.
+ *
+ *	@relates as_record
+ */
+char * as_record_get_geojson_str(const as_record * rec, const as_bin_name name);
+
+/**
  *	Get specified bin's value as an as_integer.
  *
  *	~~~~~~~~~~{.c}
@@ -636,6 +711,22 @@ as_integer * as_record_get_integer(const as_record * rec, const as_bin_name name
  *	@relates as_record
  */
 as_string * as_record_get_string(const as_record * rec, const as_bin_name name);
+
+/**
+ *	Get specified bin's value as an as_geojson.
+ *
+ *	~~~~~~~~~~{.c}
+ *	as_geojson * value = as_record_get_geojson(rec, "bin");
+ *	~~~~~~~~~~
+ *
+ *	@param rec		The record containing the bin.
+ *	@param name		The name of the bin.
+ *
+ *	@return the value if it exists, otherwise NULL.
+ *
+ *	@relates as_record
+ */
+as_geojson * as_record_get_geojson(const as_record * rec, const as_bin_name name);
 
 /**
  *	Get specified bin's value as an as_bytes.
@@ -741,3 +832,10 @@ static inline as_record * as_record_fromval(const as_val * v)
 	return (as_record *) as_util_fromval(v, AS_REC, as_rec);
 }
 
+// Local Variables:
+// mode: C
+// c-basic-offset: 4
+// tab-width: 4
+// indent-tabs-mode: t
+// End:
+// vim: tabstop=4:shiftwidth=4

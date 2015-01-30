@@ -80,7 +80,7 @@
 
 // Message info3 bits
 #define AS_MSG_INFO3_LAST				(1 << 0) // this is the last of a multi-part message
-#define AS_MSG_INFO3_COMMIT_MASTER  	(1 << 1) // write commit level - bit 0
+#define AS_MSG_INFO3_COMMIT_MASTER		(1 << 1) // write commit level - bit 0
 // (Note:  Bit 2 is unused.)
 #define AS_MSG_INFO3_UPDATE_ONLY		(1 << 3) // update existing record only, do not create new record
 #define AS_MSG_INFO3_CREATE_OR_REPLACE	(1 << 4) // completely replace existing record, or create new record
@@ -199,7 +199,7 @@ as_command_bin_size(const as_bin* bin, as_buffer* buffer)
 
 /**
  *	@private
- *	Calculate size of bin name.  Return error is bin name greater than 14 characters.
+ *	Calculate size of bin name.	 Return error is bin name greater than 14 characters.
  */
 static inline as_status
 as_command_bin_name_size(as_error* err, const char* name, size_t* size)
@@ -436,7 +436,15 @@ as_command_ignore_fields(uint8_t* p, uint32_t n_fields);
 
 /**
  *	@private
- *	Parse key fields received from server.  Used for reads.
+ *	Parse key fields received from server.	Used for reads.
  */
 uint8_t*
 as_command_parse_key(uint8_t* p, uint32_t n_fields, as_key* key);
+
+// Local Variables:
+// mode: C
+// c-basic-offset: 4
+// tab-width: 4
+// indent-tabs-mode: t
+// End:
+// vim: tabstop=4:shiftwidth=4

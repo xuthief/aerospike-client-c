@@ -7,3 +7,10 @@ default: all
 	$(MAKE) -C query_examples $@
 	$(MAKE) -C scan_examples $@
 	$(MAKE) -C geospatial_examples $@
+
+# Local Variables:
+# mode: Makefile
+# tab-width: 4
+# indent-tabs-mode: t
+# End:
+# vim: tabstop=4:shiftwidth=4

@@ -76,6 +76,10 @@ as_command_value_size(as_val* val, as_buffer* buffer)
 			as_string* v = as_string_fromval(val);
 			return as_string_len(v);
 		}
+		case AS_GEOJSON: {
+			as_geojson* v = as_geojson_fromval(val);
+			return as_geojson_len(v);
+		}
 		case AS_BYTES: {
 			as_bytes* v = as_bytes_fromval(val);
 			return v->size;
@@ -247,6 +251,15 @@ as_command_write_bin(uint8_t* begin, uint8_t operation_type, const as_bin* bin, 
 			val_type = AS_PARTICLE_TYPE_STRING;
 			break;
 		}
+		case AS_GEOJSON: {
+			as_geojson* v = as_geojson_fromval(val);
+			// v->len should have been already set by as_command_value_size().
+			memcpy(p, v->value, v->len);
+			p += v->len;
+			val_len = (uint32_t)v->len;
+			val_type = AS_PARTICLE_TYPE_GEOJSON;
+			break;
+		}
 		case AS_BYTES: {
 			as_bytes* v = as_bytes_fromval(val);
 			memcpy(p, v->value, v->size);
@@ -329,7 +342,7 @@ as_command_execute(as_error * err, as_command_node* cn, uint8_t* command, size_t
 		
 		if (status) {
 			// Socket errors are considered temporary anomalies.  Retry.
-			// Close socket to flush out possible garbage.  Do not put back in pool.
+			// Close socket to flush out possible garbage.	Do not put back in pool.
 			as_close(fd);
 			if (release_node) {
 				as_node_release(node);
@@ -420,7 +433,7 @@ as_command_parse_header(as_error* err, int fd, uint64_t deadline_ms, void* user_
 	
 	// Ensure that there is no data left to read.
 	as_proto_swap_from_be(&msg->proto);
-	size_t size = msg->proto.sz  - msg->m.header_sz;
+	size_t size = msg->proto.sz	 - msg->m.header_sz;
 	
 	if (size > 0) {
 		as_log_warn("Unexpected data received from socket after a write: fd=%d size=%zu", fd, size);
@@ -597,6 +610,13 @@ as_command_parse_value(uint8_t* p, uint8_t type, uint32_t value_size, as_val** v
 			*value = (as_val*)as_string_new_wlen(v, value_size, true);
 			break;
 		}
+		case AS_BYTES_GEOJSON: {
+			char* v = malloc(value_size + 1);
+			memcpy(v, p, value_size);
+			v[value_size] = 0;
+			*value = (as_val*)as_geojson_new_wlen(v, value_size, true);
+			break;
+		}
 		case AS_BYTES_LIST:
 		case AS_BYTES_MAP: {
 			as_buffer buffer;
@@ -765,6 +785,14 @@ as_command_parse_bins(as_record* rec, uint8_t* p, uint32_t n_bins, bool deserial
 				bin->valuep = &bin->value;
 				break;
 			}
+			case AS_BYTES_GEOJSON: {
+				char* value = malloc(value_size + 1);
+				memcpy(value, p, value_size);
+				value[value_size] = 0;
+				as_geojson_init_wlen((as_geojson*)&bin->value, (char*)value, value_size, true);
+				bin->valuep = &bin->value;
+				break;
+			}
 			case AS_BYTES_LIST:
 			case AS_BYTES_MAP: {
 				if (deserialize) {
@@ -818,7 +846,7 @@ as_command_parse_result(as_error* err, int fd, uint64_t deadline_ms, void* user_
 	
 	as_proto_swap_from_be(&msg.proto);
 	as_msg_swap_header_from_be(&msg.m);
-	size_t size = msg.proto.sz  - msg.m.header_sz;
+	size_t size = msg.proto.sz	- msg.m.header_sz;
 	uint8_t* buf = 0;
 	
 	if (size > 0) {
@@ -895,7 +923,7 @@ as_command_parse_success_failure(as_error* err, int fd, uint64_t deadline_ms, vo
 	
 	as_proto_swap_from_be(&msg.proto);
 	as_msg_swap_header_from_be(&msg.m);
-	size_t size = msg.proto.sz  - msg.m.header_sz;
+	size_t size = msg.proto.sz	- msg.m.header_sz;
 	uint8_t* buf = 0;
 	
 	if (size > 0) {
@@ -939,3 +967,11 @@ as_command_parse_success_failure(as_error* err, int fd, uint64_t deadline_ms, vo
 	as_command_free(buf, size);
 	return status;
 }
+
+// Local Variables:
+// mode: C
+// c-basic-offset: 4
+// tab-width: 4
+// indent-tabs-mode: t
+// End:
+// vim: tabstop=4:shiftwidth=4

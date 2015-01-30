@@ -28,6 +28,7 @@
  *****************************************************************************/
 
 extern inline bool as_operations_add_write_str(as_operations * ops, const as_bin_name name, const char * value);
+extern inline bool as_operations_add_write_geojson_str(as_operations * ops, const as_bin_name name, const char * value);
 extern inline bool as_operations_add_write_raw(as_operations * ops, const as_bin_name name, const uint8_t * value, uint32_t size);
 extern inline bool as_operations_add_prepend_str(as_operations * ops, const as_bin_name name, const char * value);
 extern inline bool as_operations_add_prepend_raw(as_operations * ops, const as_bin_name name, const uint8_t * value, uint32_t size);
@@ -95,7 +96,7 @@ static as_binop * as_binop_forappend(as_operations * ops, as_operator operator, 
  *
  *	~~~~~~~~~~{.c}
  *		as_operations ops;
- * 		as_operations_init(&ops, 2);
+ *		as_operations_init(&ops, 2);
  *		as_operations_append_int64(&ops, AS_OPERATOR_INCR, "bin1", 123);
  *		as_operations_append_str(&ops, AS_OPERATOR_APPEND, "bin2", "abc");
  *	~~~~~~~~~~
@@ -103,7 +104,7 @@ static as_binop * as_binop_forappend(as_operations * ops, as_operator operator, 
  *	Use `as_operations_destroy()` to free the resources allocated to the
  *	`as_operations`.
  *
- *	@param ops 		The `as_operations` to initialize.
+ *	@param ops		The `as_operations` to initialize.
  *	@param nops		The number of `as_operations.binops.entries` to allocate on the heap.
  *
  *	@return The initialized `as_operations` on success. Otherwise NULL.
@@ -119,7 +120,7 @@ as_operations * as_operations_init(as_operations * ops, uint16_t nops)
  *
  *	~~~~~~~~~~{.c}
  *		as_operations ops;
- * 		as_operations_init(&ops, 2);
+ *		as_operations_init(&ops, 2);
  *		as_operations_append_int64(&ops, AS_OPERATOR_INCR, "bin1", 123);
  *		as_operations_append_str(&ops, AS_OPERATOR_APPEND, "bin2", "abc");
  *	~~~~~~~~~~
@@ -127,7 +128,7 @@ as_operations * as_operations_init(as_operations * ops, uint16_t nops)
  *	Use `as_operations_destroy()` to free the resources allocated to the
  *	`as_operations`.
  *
- *	@param ops 		The `as_operations` to initialize.
+ *	@param ops		The `as_operations` to initialize.
  *	@param nops		The number of `as_operations.binops.entries` to allocate on the heap.
  *
  *	@return The new `as_operations` on success. Otherwise NULL.
@@ -143,10 +144,10 @@ as_operations * as_operations_new(uint16_t nops)
  *	Releases the `as_operations` and associated resources.
  *
  *	~~~~~~~~~~{.c}
- * 		as_operations_destroy(binops);
+ *		as_operations_destroy(binops);
  *	~~~~~~~~~~
  *
- *	@param bins 	The `as_binops` to destroy.
+ *	@param bins		The `as_binops` to destroy.
  */
 void as_operations_destroy(as_operations * ops)
 {
@@ -177,8 +178,8 @@ void as_operations_destroy(as_operations * ops)
  *	Add a AS_OPERATOR_WRITE bin operation.
  *
  *	@param ops			The `as_operations` to append the operation to.
- *	@param name 		The name of the bin to perform the operation on.
- *	@param value 		The value to be used in the operation.
+ *	@param name			The name of the bin to perform the operation on.
+ *	@param value		The value to be used in the operation.
  *
  *	@return true on success. Otherwise an error occurred.
  */
@@ -194,8 +195,8 @@ bool as_operations_add_write(as_operations * ops, const as_bin_name name, as_bin
  *	Add a AS_OPERATOR_WRITE bin operation with an int64_t value.
  *
  *	@param ops			The `as_operations` to append the operation to.
- *	@param name 		The name of the bin to perform the operation on.
- *	@param value 		The value to be used in the operation.
+ *	@param name			The name of the bin to perform the operation on.
+ *	@param value		The value to be used in the operation.
  *
  *	@return true on success. Otherwise an error occurred.
  */
@@ -211,8 +212,8 @@ bool as_operations_add_write_int64(as_operations * ops, const as_bin_name name, 
  *	Add a AS_OPERATOR_WRITE bin operation with a NULL-terminated string value.
  *
  *	@param ops			The `as_operations` to append the operation to.
- *	@param name 		The name of the bin to perform the operation on.
- *	@param value 		The value to be used in the operation.
+ *	@param name			The name of the bin to perform the operation on.
+ *	@param value		The value to be used in the operation.
  *	@param free			If true, then the value will be freed when the operations is destroyed.
  *
  *	@return true on success. Otherwise an error occurred.
@@ -226,11 +227,29 @@ bool as_operations_add_write_strp(as_operations * ops, const as_bin_name name, c
 }
 
 /**
+ *	Add a AS_OPERATOR_WRITE bin operation with a NULL-terminated GeoJSON string value.
+ *
+ *	@param ops			The `as_operations` to append the operation to.
+ *	@param name			The name of the bin to perform the operation on.
+ *	@param value		The value to be used in the operation.
+ *	@param free			If true, then the value will be freed when the operations is destroyed.
+ *
+ *	@return true on success. Otherwise an error occurred.
+ */
+bool as_operations_add_write_geojson_strp(as_operations * ops, const as_bin_name name, const char * value, bool free)
+{
+	as_binop * binop = as_binop_forappend(ops, AS_OPERATOR_WRITE, name);
+	if ( !binop ) return false;
+	as_bin_init_geojson(&binop->bin, name, value, free);
+	return true;
+}
+
+/**
  *	Add a AS_OPERATOR_WRITE bin operation with a raw bytes value.
  *
  *	@param ops			The `as_operations` to append the operation to.
- *	@param name 		The name of the bin to perform the operation on.
- *	@param value 		The value to be used in the operation.
+ *	@param name			The name of the bin to perform the operation on.
+ *	@param value		The value to be used in the operation.
  *	@param free			If true, then the value will be freed when the operations is destroyed.
  *
  *	@return true on success. Otherwise an error occurred.
@@ -247,7 +266,7 @@ bool as_operations_add_write_rawp(as_operations * ops, const as_bin_name name, c
  *	Add a AS_OPERATOR_READ bin operation.
  *
  *	@param ops			The `as_operations` to append the operation to.
- *	@param name 		The name of the bin to perform the operation on.
+ *	@param name			The name of the bin to perform the operation on.
  *
  *	@return true on success. Otherwise an error occurred.
  */
@@ -263,8 +282,8 @@ bool as_operations_add_read(as_operations * ops, const as_bin_name name)
  *	Add a AS_OPERATOR_INCR bin operation with (required) int64_t value.
  *
  *	@param ops			The `as_operations` to append the operation to.
- *	@param name 		The name of the bin to perform the operation on.
- *	@param value 		The value to be used in the operation.
+ *	@param name			The name of the bin to perform the operation on.
+ *	@param value		The value to be used in the operation.
  *
  *	@return true on success. Otherwise an error occurred.
  */
@@ -280,8 +299,8 @@ bool as_operations_add_incr(as_operations * ops, const as_bin_name name, int64_t
  *	Add a AS_OPERATOR_PREPEND bin operation with a NULL-terminated string value.
  *
  *	@param ops			The `as_operations` to append the operation to.
- *	@param name 		The name of the bin to perform the operation on.
- *	@param value 		The value to be used in the operation.
+ *	@param name			The name of the bin to perform the operation on.
+ *	@param value		The value to be used in the operation.
  *	@param free			If true, then the value will be freed when the operations is destroyed.
  *
  *	@return true on success. Otherwise an error occurred.
@@ -298,8 +317,8 @@ bool as_operations_add_prepend_strp(as_operations * ops, const as_bin_name name,
  *	Add a AS_OPERATOR_PREPEND bin operation with a raw bytes value.
  *
  *	@param ops			The `as_operations` to append the operation to.
- *	@param name 		The name of the bin to perform the operation on.
- *	@param value 		The value to be used in the operation.
+ *	@param name			The name of the bin to perform the operation on.
+ *	@param value		The value to be used in the operation.
  *	@param free			If true, then the value will be freed when the operations is destroyed.
  *
  *	@return true on success. Otherwise an error occurred.
@@ -316,8 +335,8 @@ bool as_operations_add_prepend_rawp(as_operations * ops, const as_bin_name name,
  *	Add a AS_OPERATOR_APPEND bin operation with a NULL-terminated string value.
  *
  *	@param ops			The `as_operations` to append the operation to.
- *	@param name 		The name of the bin to perform the operation on.
- *	@param value 		The value to be used in the operation.
+ *	@param name			The name of the bin to perform the operation on.
+ *	@param value		The value to be used in the operation.
  *	@param free			If true, then the value will be freed when the operations is destroyed.
  *
  *	@return true on success. Otherwise an error occurred.
@@ -334,8 +353,8 @@ bool as_operations_add_append_strp(as_operations * ops, const as_bin_name name, 
  *	Add a AS_OPERATOR_APPEND bin operation with a raw bytes value.
  *
  *	@param ops			The `as_operations` to append the operation to.
- *	@param name 		The name of the bin to perform the operation on.
- *	@param value 		The value to be used in the operation.
+ *	@param name			The name of the bin to perform the operation on.
+ *	@param value		The value to be used in the operation.
  *	@param free			If true, then the value will be freed when the operations is destroyed.
  *
  *	@return true on success. Otherwise an error occurred.
@@ -363,3 +382,11 @@ bool as_operations_add_touch(as_operations * ops)
 	as_bin_init_nil(&binop->bin, "");
 	return true;
 }
+
+// Local Variables:
+// mode: C
+// c-basic-offset: 4
+// tab-width: 4
+// indent-tabs-mode: t
+// End:
+// vim: tabstop=4:shiftwidth=4

@@ -18,6 +18,7 @@
 
 #include <aerospike/as_integer.h>
 #include <aerospike/as_string.h>
+#include <aerospike/as_geojson.h>
 #include <aerospike/as_bytes.h>
 #include <aerospike/as_list.h>
 #include <aerospike/as_map.h>
@@ -50,12 +51,13 @@ typedef char as_bin_name[AS_BIN_NAME_MAX_SIZE];
  *	Bin Value
  */
 typedef union as_bin_value_s {
-	as_val 		nil;
-	as_integer 	integer;
-	as_string 	string;
-	as_bytes 	bytes;
-	as_list 	list;
-	as_map 		map;
+	as_val		nil;
+	as_integer	integer;
+	as_string	string;
+	as_geojson	geojson;
+	as_bytes	bytes;
+	as_list		list;
+	as_map		map;
 } as_bin_value;
 
 /**
@@ -128,7 +130,7 @@ typedef struct as_bins_s {
  *	char * name = as_bin_get_name(bin);
  *	~~~~~~~~~~
  *
- *	@param bin 	The bin to get the name of.
+ *	@param bin	The bin to get the name of.
  *
  *	@return The name of the bin.
  *
@@ -146,7 +148,7 @@ static inline char * as_bin_get_name(const as_bin * bin) {
  *	as_bin_value val = as_bin_get_value(bin);
  *	~~~~~~~~~~
  *
- *	@param bin 	The bin to get the value of.
+ *	@param bin	The bin to get the value of.
  *
  *	@return The value of the bin.
  *
@@ -164,7 +166,7 @@ static inline as_bin_value * as_bin_get_value(const as_bin * bin) {
  *	as_val_t type = as_bin_get_type(bin);
  *	~~~~~~~~~~
  *
- *	@param bin 	The bin to get value's type.
+ *	@param bin	The bin to get value's type.
  *
  *	@return The type of the bin's value
  *
@@ -174,3 +176,10 @@ static inline as_val_t as_bin_get_type(const as_bin * bin) {
 	return as_val_type(bin->valuep);
 }
 
+// Local Variables:
+// mode: C
+// c-basic-offset: 4
+// tab-width: 4
+// indent-tabs-mode: t
+// End:
+// vim: tabstop=4:shiftwidth=4

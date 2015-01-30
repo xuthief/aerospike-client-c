@@ -175,9 +175,9 @@ cleanup(aerospike* p_as)
 bool
 insert_records(aerospike* p_as)
 {
-	// Create an as_record object with one (integer value) bin. By using
+	// Create an as_record object with one (GeoJSON value) bin. By using
 	// as_record_inita(), we won't need to destroy the record if we only set
-	// bins using as_record_set_int64().
+	// bins using as_record_set_geojson().
 	as_record rec;
 	as_record_inita(&rec, 1);
 
@@ -191,9 +191,12 @@ insert_records(aerospike* p_as)
 		as_key key;
 		as_key_init_int64(&key, g_namespace, g_set, (int64_t)i);
 
-		// In general it's ok to reset a bin value - all as_record_set_... calls
-		// destroy any previous value.
-		as_record_set_int64(&rec, "test-bin", (int64_t)i);
+		double lng = -122 + (0.1 * i);
+		double lat = 37.5 + (0.1 * i);
+		char buff[1024];
+		snprintf(buff, sizeof(buff),
+				 "{ \"type\": \"Point\", \"coordinates\": [%f, %f] }", lng, lat);
+		as_record_set_geojson_str(&rec, "test-bin", buff);
 
 		// Write a record to the database.
 		if (aerospike_key_put(p_as, &err, NULL, &key, &rec) != AEROSPIKE_OK) {
@@ -206,3 +209,11 @@ insert_records(aerospike* p_as)
 
 	return true;
 }
+
+// Local Variables:
+// mode: C
+// c-basic-offset: 4
+// tab-width: 4
+// indent-tabs-mode: t
+// End:
+// vim: tabstop=4:shiftwidth=4
