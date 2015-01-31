@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 Aerospike, Inc.
+ * Copyright 2008-2015 Aerospike, Inc.
  *
  * Portions may be licensed to Aerospike, Inc. under one or more contributor
  * license agreements.
@@ -15,6 +15,10 @@
  * the License.
  */
 #pragma once 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <aerospike/as_integer.h>
 #include <aerospike/as_string.h>
@@ -175,6 +179,10 @@ static inline as_bin_value * as_bin_get_value(const as_bin * bin) {
 static inline as_val_t as_bin_get_type(const as_bin * bin) {
 	return as_val_type(bin->valuep);
 }
+
+#ifdef __cplusplus
+} // end extern "C"
+#endif
 
 // Local Variables:
 // mode: C

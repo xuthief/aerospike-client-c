@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 Aerospike, Inc.
+ * Copyright 2008-2015 Aerospike, Inc.
  *
  * Portions may be licensed to Aerospike, Inc. under one or more contributor
  * license agreements.
@@ -15,6 +15,10 @@
  * the License.
  */
 #pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*******************************************************************************
  *	TYPES
@@ -175,6 +179,11 @@ typedef enum as_status_e {
 	AEROSPIKE_ERR_BIN_NAME = 21,
 	
 	/**
+	 *	Operation not allowed at this time.
+	 */
+	AEROSPIKE_ERR_FAIL_FORBIDDEN = 22,
+
+	/**
 	 *	There are no more records left for query.
 	 */
 	AEROSPIKE_QUERY_END = 50,
@@ -245,9 +254,14 @@ typedef enum as_status_e {
 	AEROSPIKE_INVALID_ROLE = 70,
 	
 	/**
+	 *	Role already exists.
+	 */
+	AEROSPIKE_ROLE_ALREADY_EXISTS = 71,
+
+	/**
 	 *	Privilege is invalid.
 	 */
-	AEROSPIKE_INVALID_PRIVILEGE = 71,
+	AEROSPIKE_INVALID_PRIVILEGE = 72,
 	
 	/**
 	 *	User must be authentication before performing database operations.
@@ -457,3 +471,7 @@ typedef enum as_status_e {
 	AEROSPIKE_ERR_LDT_USER_MODULE_NOT_FOUND       = 1439
 
 } as_status;
+
+#ifdef __cplusplus
+} // end extern "C"
+#endif

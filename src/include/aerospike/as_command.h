@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2014 Aerospike, Inc.
+ * Copyright 2008-2015 Aerospike, Inc.
  *
  * Portions may be licensed to Aerospike, Inc. under one or more contributor
  * license agreements.
@@ -15,6 +15,10 @@
  * the License.
  */
 #pragma once 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <aerospike/as_bin.h>
 #include <aerospike/as_buffer.h>
@@ -48,15 +52,6 @@
 #define AS_FIELD_UDF_ARGLIST 32
 #define AS_FIELD_UDF_OP 33
 #define AS_FIELD_QUERY_BINS 40
-
-// Particle Types
-#define AS_PARTICLE_TYPE_NULL 0
-#define AS_PARTICLE_TYPE_INTEGER 1
-#define AS_PARTICLE_TYPE_STRING 3
-#define AS_PARTICLE_TYPE_BLOB 4
-#define AS_PARTICLE_TYPE_MAP 19
-#define AS_PARTICLE_TYPE_LIST 20
-#define AS_PARTICLE_TYPE_GEOJSON 23
 
 // Message info1 bits
 #define AS_MSG_INFO1_READ				(1 << 0) // contains a read operation
@@ -440,6 +435,10 @@ as_command_ignore_fields(uint8_t* p, uint32_t n_fields);
  */
 uint8_t*
 as_command_parse_key(uint8_t* p, uint32_t n_fields, as_key* key);
+
+#ifdef __cplusplus
+} // end extern "C"
+#endif
 
 // Local Variables:
 // mode: C
