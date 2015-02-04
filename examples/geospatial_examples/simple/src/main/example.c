@@ -47,7 +47,7 @@
 // Constants
 //
 
-const char TEST_INDEX_NAME[] = "test-bin-index";
+const char TEST_INDEX_NAME[] = "points-loc-index";
 
 
 //==========================================================
@@ -75,6 +75,7 @@ main(int argc, char* argv[])
 	aerospike as;
 	example_connect_to_aerospike(&as);
 
+#if 0
 	// Start clean.
 	example_remove_test_records(&as);
 	example_remove_index(&as, TEST_INDEX_NAME);
@@ -84,6 +85,7 @@ main(int argc, char* argv[])
 		cleanup(&as);
 		exit(-1);
 	}
+#endif
 
 	if (! insert_records(&as)) {
 		cleanup(&as);
@@ -167,9 +169,11 @@ query_cb(const as_val* p_val, void* udata)
 void
 cleanup(aerospike* p_as)
 {
+#if 0
 	example_remove_test_records(p_as);
 	example_remove_index(p_as, TEST_INDEX_NAME);
 	example_cleanup(p_as);
+#endif
 }
 
 bool
@@ -196,7 +200,7 @@ insert_records(aerospike* p_as)
 		char buff[1024];
 		snprintf(buff, sizeof(buff),
 				 "{ \"type\": \"Point\", \"coordinates\": [%f, %f] }", lng, lat);
-		as_record_set_geojson_str(&rec, "test-bin", buff);
+		as_record_set_geojson_str(&rec, "loc", buff);
 
 		// Write a record to the database.
 		if (aerospike_key_put(p_as, &err, NULL, &key, &rec) != AEROSPIKE_OK) {
