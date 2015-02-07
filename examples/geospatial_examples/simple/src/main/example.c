@@ -103,13 +103,24 @@ main(int argc, char* argv[])
 	as_query query;
 	as_query_init(&query, g_namespace, g_set);
 
+	// Our query region:
+	char const * region =
+		"{ "
+		"    \"type\": \"Polygon\", "
+		"    \"coordinates\": [ "
+		"        [[-122.500000, 37.000000],[-121.000000, 37.000000], "
+		"         [-121.000000, 38.080000],[-122.500000, 38.080000], "
+		"         [-122.500000, 37.000000]] "
+		"    ] "
+		" } ";
+
 	// Generate an as_query.where condition. Note that as_query_destroy() takes
 	// care of destroying all the query's member objects if necessary. However
 	// using as_query_where_inita() does avoid internal heap usage.
 	as_query_where_inita(&query, 1);
-	as_query_where(&query, "test-bin", as_integer_equals(7));
+	as_query_where(&query, "loc", as_geo_within(region));
 
-	LOG("executing query: where test-bin = 7");
+	LOG("executing query: within <rect>");
 
 	// Execute the query. This call blocks - callbacks are made in the scope of
 	// this call.
