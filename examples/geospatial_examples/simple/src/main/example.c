@@ -47,6 +47,7 @@
 // Constants
 //
 
+const char TEST_BIN_NAME[] = "loc";
 const char TEST_INDEX_NAME[] = "points-loc-index";
 
 
@@ -79,13 +80,13 @@ main(int argc, char* argv[])
 	// Start clean.
 	example_remove_test_records(&as);
 	example_remove_index(&as, TEST_INDEX_NAME);
+#endif
 
 	// Create a numeric secondary index on test-bin.
-	if (! example_create_integer_index(&as, "test-bin", TEST_INDEX_NAME)) {
+	if (! example_create_2dsphere_index(&as, TEST_BIN_NAME, TEST_INDEX_NAME)) {
 		cleanup(&as);
 		exit(-1);
 	}
-#endif
 
 	if (! insert_records(&as)) {
 		cleanup(&as);
@@ -118,7 +119,7 @@ main(int argc, char* argv[])
 	// care of destroying all the query's member objects if necessary. However
 	// using as_query_where_inita() does avoid internal heap usage.
 	as_query_where_inita(&query, 1);
-	as_query_where(&query, "loc", as_geo_within(region));
+	as_query_where(&query, TEST_BIN_NAME, as_geo_within(region));
 
 	LOG("executing query: within <rect>");
 
@@ -211,7 +212,7 @@ insert_records(aerospike* p_as)
 		char buff[1024];
 		snprintf(buff, sizeof(buff),
 				 "{ \"type\": \"Point\", \"coordinates\": [%f, %f] }", lng, lat);
-		as_record_set_geojson_str(&rec, "loc", buff);
+		as_record_set_geojson_str(&rec, TEST_BIN_NAME, buff);
 
 		// Write a record to the database.
 		if (aerospike_key_put(p_as, &err, NULL, &key, &rec) != AEROSPIKE_OK) {
