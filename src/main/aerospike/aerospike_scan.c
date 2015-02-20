@@ -165,10 +165,6 @@ as_scan_parse(as_error* err, int fd, uint64_t deadline_ms, void* udata)
 				break;
 			}
 		}
-		else {
-			status = as_error_set_message(err, AEROSPIKE_ERR_CLIENT, "Received zero sized data packet from server.");
-			break;
-		}
 	}
 	as_command_free(buf, capacity);
 	return status;
@@ -181,6 +177,7 @@ as_scan_command_execute(as_scan_task* task)
 	cn.node = task->node;
 	
 	as_error err;
+	as_error_init(&err);
 	as_status status = as_command_execute(&err, &cn, task->cmd, task->cmd_size, task->policy->timeout, AS_POLICY_RETRY_NONE, as_scan_parse, task);
 	
 	if (status) {

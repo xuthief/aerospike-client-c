@@ -182,11 +182,11 @@ as_admin_execute(aerospike* as, as_error* err, const as_policy_admin* policy, ui
 	}
 	
 	int fd;
-	as_status status = as_node_get_connection(node, &fd);
+	as_status status = as_node_get_connection(err, node, &fd);
 	
 	if (status) {
 		as_node_release(node);
-		return as_error_update(err, status, "Failed to connect to node %s.", node->name);
+		return status;
 	}
 
 	status = as_admin_send(err, fd, buffer, end, deadline_ms);
@@ -261,10 +261,6 @@ as_admin_read_blocks(as_error* err, int fd, uint64_t deadline_ms, as_admin_parse
 				break;
 			}
 		}
-		else {
-			status = as_error_set_message(err, AEROSPIKE_ERR_CLIENT, "Received zero sized data packet from server.");
-			break;
-		}
 	}
 	as_command_free(buf, capacity);
 	return status;
@@ -285,11 +281,11 @@ as_admin_read_list(aerospike* as, as_error* err, const as_policy_admin* policy, 
 	}
 	
 	int fd;
-	as_status status = as_node_get_connection(node, &fd);
+	as_status status = as_node_get_connection(err, node, &fd);
 	
 	if (status) {
 		as_node_release(node);
-		return as_error_update(err, status, "Failed to connect to node %s.", node->name);
+		return status;
 	}
 	
 	status = as_admin_send(err, fd, command, end, deadline_ms);

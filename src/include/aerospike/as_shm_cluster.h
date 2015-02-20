@@ -16,15 +16,15 @@
  */
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <aerospike/as_config.h>
 #include <aerospike/as_partition.h>
 #include <citrusleaf/cf_queue.h>
 #include <ck_spinlock.h>
 #include <ck_swlock.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /******************************************************************************
  *	TYPES
@@ -250,8 +250,8 @@ typedef struct as_shm_info_s {
  *	@private
  *	Create shared memory implementation of cluster.
  */
-int
-as_shm_create(struct as_cluster_s* cluster, as_config* config);
+as_status
+as_shm_create(struct as_cluster_s* cluster, as_error* err, as_config* config);
 
 /**
  *	@private

@@ -16,10 +16,6 @@
  */
 #pragma once 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <aerospike/as_bin.h>
 #include <aerospike/as_buffer.h>
 #include <aerospike/as_cluster.h>
@@ -29,6 +25,10 @@ extern "C" {
 #include <aerospike/as_record.h>
 #include <citrusleaf/cf_byte_order.h>
 #include <citrusleaf/cf_digest.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /******************************************************************************
  *	MACROS
@@ -388,8 +388,8 @@ as_command_parse_success_failure(as_error* err, int fd, uint64_t deadline_ms, vo
  *	@private
  *	Parse server success or failure bins.
  */
-uint8_t*
-as_command_parse_success_failure_bins(uint8_t* p, as_error* err, as_msg* msg, as_val** value);
+as_status
+as_command_parse_success_failure_bins(uint8_t** pp, as_error* err, as_msg* msg, as_val** value);
 
 /**
  *	@private

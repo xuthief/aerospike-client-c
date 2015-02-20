@@ -16,16 +16,16 @@
  */
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <aerospike/as_config.h>
 #include <aerospike/as_node.h>
 #include <aerospike/as_partition.h>
 #include <aerospike/as_policy.h>
 #include <citrusleaf/cf_atomic.h>
 #include "ck_pr.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /******************************************************************************
  *	MACROS
@@ -302,8 +302,8 @@ typedef struct as_cluster_s {
 /**
  *	Create and initialize cluster.
  */
-int
-as_cluster_create(as_config* config, as_cluster** cluster);
+as_status
+as_cluster_create(as_config* config, as_error* err, as_cluster** cluster);
 
 /**
  *	Close all connections and release memory associated with cluster.

@@ -16,10 +16,6 @@
  */
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  *	@defgroup key_operations Key Operations
  *	@ingroup client_operations
@@ -41,6 +37,10 @@ extern "C" {
 #include <aerospike/as_record.h>
 #include <aerospike/as_status.h>
 #include <aerospike/as_val.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /******************************************************************************
  *	FUNCTIONS
@@ -197,7 +197,7 @@ as_status aerospike_key_put(
  *	@param policy		The policy to use for this operation. If NULL, then the default policy will be used.
  *	@param key			The key of the record.
  *
- *	@return AEROSPIKE_OK if successful. Otherwise an error.
+ *	@return AEROSPIKE_OK if successful and AEROSPIKE_ERR_RECORD_NOT_FOUND if the record was not found. Otherwise an error.
  *
  *	@ingroup key_operations
  */

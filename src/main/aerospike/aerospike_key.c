@@ -29,6 +29,7 @@
 #include <aerospike/as_record.h>
 #include <aerospike/as_serializer.h>
 #include <aerospike/as_status.h>
+#include <citrusleaf/cf_clock.h>
 
 /******************************************************************************
  * FUNCTIONS
@@ -200,7 +201,7 @@ as_status aerospike_key_exists(
 				*rec = r;
 			}
 			r->gen = (uint16_t)msg.m.generation;
-			r->ttl = msg.m.record_ttl;
+			r->ttl = cf_server_void_time_to_ttl(msg.m.record_ttl);
 		}
 		else {
 			*rec = 0;
@@ -294,7 +295,7 @@ as_status aerospike_key_put(
  *	@param policy		The policy to use for this operation. If NULL, then the default policy will be used.
  *	@param key			The key of the record.
  *
- *	@return AEROSPIKE_OK if successful. Otherwise an error.
+ *	@return AEROSPIKE_OK if successful and AEROSPIKE_ERR_RECORD_NOT_FOUND if the record was not found. Otherwise an error.
  */
 as_status aerospike_key_remove(
 	aerospike * as, as_error * err, const as_policy_remove * policy, const as_key * key)
@@ -315,7 +316,7 @@ as_status aerospike_key_remove(
 	size_t size = as_command_key_size(policy->key, key, &n_fields);
 		
 	uint8_t* cmd = as_command_init(size);
-	uint8_t* p = as_command_write_header(cmd, 0, AS_MSG_INFO2_WRITE | AS_MSG_INFO2_DELETE, policy->commit_level, 0, AS_POLICY_EXISTS_IGNORE, policy->gen, 0, 0, policy->timeout, n_fields, 0);
+	uint8_t* p = as_command_write_header(cmd, 0, AS_MSG_INFO2_WRITE | AS_MSG_INFO2_DELETE, policy->commit_level, 0, AS_POLICY_EXISTS_IGNORE, policy->gen, policy->generation, 0, policy->timeout, n_fields, 0);
 	p = as_command_write_key(p, policy->key, key);
 	size = as_command_write_end(cmd, p);
 	
@@ -326,7 +327,7 @@ as_status aerospike_key_remove(
 	status = as_command_execute(err, &cn, cmd, size, policy->timeout, policy->retry, as_command_parse_header, &msg);
 	
 	as_command_free(cmd, size);
-	return (status == AEROSPIKE_OK || status == AEROSPIKE_ERR_RECORD_NOT_FOUND)? AEROSPIKE_OK : status;
+	return status;
 }
 
 /**
