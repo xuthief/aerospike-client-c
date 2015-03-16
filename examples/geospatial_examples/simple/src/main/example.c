@@ -76,11 +76,9 @@ main(int argc, char* argv[])
 	aerospike as;
 	example_connect_to_aerospike(&as);
 
-#if 0
 	// Start clean.
 	example_remove_test_records(&as);
 	example_remove_index(&as, TEST_INDEX_NAME);
-#endif
 
 	// Create a numeric secondary index on test-bin.
 	if (! example_create_2dsphere_index(&as, TEST_BIN_NAME, TEST_INDEX_NAME)) {
@@ -181,11 +179,9 @@ query_cb(const as_val* p_val, void* udata)
 void
 cleanup(aerospike* p_as)
 {
-#if 0
 	example_remove_test_records(p_as);
 	example_remove_index(p_as, TEST_INDEX_NAME);
 	example_cleanup(p_as);
-#endif
 }
 
 bool
