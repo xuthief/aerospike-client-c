@@ -1,3 +1,11 @@
+/*************************************
+ *
+ * usage:
+ *
+ * env -i REDIS_HOST="localhost" REDIS_PORT=6379  ./target/example -h 10.37.129.10 -n topic
+ *
+ * ***********************************/
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -21,6 +29,10 @@
 #include <errno.h>
 #include <hiredis/hiredis.h>
 
+#undef LOG
+#define LOG(...) (void)0
+#define ERROR(_fmt, _args...) { printf(_fmt "\n", ## _args); fflush(stdout); }
+
 static 
 int add_elements_to_as(aerospike *p_as, as_ldt *p_lset, char *str_key, size_t count, redisReply **elements);
 
@@ -43,7 +55,7 @@ main(int argc, char* argv[])
     // as_ldt_init() on stack object.
     as_ldt lset;
     if (! as_ldt_init(&lset, "mylset", AS_LDT_LSET, NULL)) {
-        LOG("unable to initialize ldt");
+        ERROR("unable to initialize ldt");
         // example_cleanup(&as);
         exit(-1);
     }
@@ -56,7 +68,7 @@ main(int argc, char* argv[])
     int i_redis_port = 6379;
     if (str_redis_port) i_redis_port = atoi(str_redis_port);
 
-    LOG("redis=%s:%d", str_redis_host, i_redis_port);
+    ERROR("redis = %s:%d", str_redis_host, i_redis_port);
 
     redisContext *c;
     redisReply *reply;
@@ -65,10 +77,10 @@ main(int argc, char* argv[])
     c = redisConnectWithTimeout(str_redis_host, i_redis_port, timeout);
     if (c == NULL || c->err) {
         if (c) {
-            LOG("Connection error: %s\n", c->errstr);
+            ERROR("Connection error: %s\n", c->errstr);
             redisFree(c);
         } else {
-            LOG("Connection error: can't allocate redis context\n");
+            ERROR("Connection error: can't allocate redis context\n");
         }
         exit(1);
     }
@@ -79,25 +91,28 @@ main(int argc, char* argv[])
     freeReplyObject(reply);
 
     /* Set a key */
-    unsigned scan_index = 0;
-    reply = redisCommand(c,"SCAN %u", scan_index);
-    LOG("SCAN %u : %s %u\n", scan_index, reply->str, (unsigned)reply->element[1]->elements);
+    long scan_index = 0;
+    reply = redisCommand(c,"SCAN %ld", scan_index);
     freeReplyObject(reply);
 
     do {
-        reply = redisCommand(c,"SCAN %u", scan_index);
-        scan_index = reply->element[0]->integer;
+        reply = redisCommand(c,"SCAN %ld", scan_index);
+        scan_index = atol(reply->element[0]->str);
+        LOG("SCAN %u : %s %u\n", scan_index, reply->element[0]->str, (unsigned)reply->element[1]->elements);
         
         for (int i = 0; i<reply->element[1]->elements; i++) {
             char *str_key = reply->element[1]->element[i]->str;
             if (!str_key) continue;
 
-            unsigned sub_sscan_index = 0;
+            long sub_sscan_index = 0;
             do {
-                redisReply *sub_reply = redisCommand(c,"SSCAN %s %u", str_key, sub_sscan_index);
-                sub_sscan_index = sub_reply->element[0]->integer;
-                LOG("SSCAN %s %u : %s %u\n", str_key, sub_sscan_index, sub_reply->element[0]->str, (unsigned)sub_reply->element[1]->elements);
-                add_elements_to_as(&as, &lset, str_key, sub_reply->element[1]->elements, sub_reply->element[1]->element);
+                redisReply *sub_reply = redisCommand(c,"SSCAN %s %ld", str_key, sub_sscan_index);
+                sub_sscan_index = atol(sub_reply->element[0]->str);
+                LOG("SSCAN %s %ld : %s %u\n", str_key, sub_sscan_index, sub_reply->element[0]->str, (unsigned)sub_reply->element[1]->elements);
+
+                if (add_elements_to_as(&as, &lset, str_key, sub_reply->element[1]->elements, sub_reply->element[1]->element) != 0) {
+                    ERROR("add elements to as failed for key %s sub_sscan_index %d", str_key, sub_sscan_index);
+                }
                 freeReplyObject(sub_reply);
             } while (sub_sscan_index != 0);
         }
@@ -111,7 +126,7 @@ int add_elements_to_as(aerospike *p_as, as_ldt *p_lset, char *str_key, size_t co
     if (!str_key) return 0;
 
     if (!elements && !count) {
-        LOG("no elements (%x) or count (%u)", count, elements);
+        ERROR("no elements (%x) or count (%u)", count, elements);
         return -1;
     }
 
@@ -130,7 +145,7 @@ int add_elements_to_as(aerospike *p_as, as_ldt *p_lset, char *str_key, size_t co
     // Add a string value to the set.
     if (aerospike_lset_add_all(p_as, &err, NULL, &g_key, p_lset,
                 (const as_list*)&vals) != AEROSPIKE_OK) {
-        LOG("aerospike_set_addall() returned %d - %s", err.code,
+        ERROR("aerospike_set_addall() returned %d - %s", err.code,
                 err.message);
         return -2;
     }
