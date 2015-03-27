@@ -40,7 +40,7 @@ else
 endif
 
 # Override optimizations via: make O=n
-O = 3
+O = 0
 
 # Make-local Compiler Flags
 CC_FLAGS = -std=gnu99 -g -Wall -fPIC -O$(O)

@@ -145,7 +145,7 @@ int add_elements_to_as(aerospike *p_as, as_ldt *p_lset, char *str_key, size_t co
     // Add a string value to the set.
     if (aerospike_lset_add_all(p_as, &err, NULL, &g_key, p_lset,
                 (const as_list*)&vals) != AEROSPIKE_OK) {
-        ERROR("aerospike_set_addall() returned %d - %s", err.code,
+        ERROR("aerospike_set_add_all() returned %d - %s", err.code,
                 err.message);
         return -2;
     }

@@ -10,7 +10,7 @@ OS = $(shell uname)
 ARCH = $(shell uname -m)
 PLATFORM = $(OS)-$(ARCH)
 
-CFLAGS = -std=gnu99 -g -Wall -fPIC -O3
+CFLAGS = -std=gnu99 -g -Wall -fPIC -O0
 CFLAGS += -fno-common -fno-strict-aliasing
 CFLAGS += -march=nocona -DMARCH_$(ARCH)
 CFLAGS += -D_FILE_OFFSET_BITS=64 -D_REENTRANT -D_GNU_SOURCE
@@ -24,7 +24,7 @@ endif
 CFLAGS += -I$(AEROSPIKE)/target/$(PLATFORM)/include
 CFLAGS += -I../../utils/src/include
 
-LDFLAGS = -lssl -lcrypto -lpthread
+LDFLAGS = -lssl -lcrypto -lpthread -lhiredis
 ifneq ($(OS),Darwin)
   LDFLAGS += -lrt -ldl
 endif
