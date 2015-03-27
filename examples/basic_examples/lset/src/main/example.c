@@ -111,7 +111,7 @@ main(int argc, char* argv[])
                 LOG("SSCAN %s %ld : %s %u\n", str_key, sub_sscan_index, sub_reply->element[0]->str, (unsigned)sub_reply->element[1]->elements);
 
                 if (add_elements_to_as(&as, &lset, str_key, sub_reply->element[1]->elements, sub_reply->element[1]->element) != 0) {
-                    ERROR("add elements to as failed for key %s sub_sscan_index %d", str_key, sub_sscan_index);
+                    ERROR("add elements to as failed for key %s sub_sscan_index %ld", str_key, sub_sscan_index);
                 }
                 freeReplyObject(sub_reply);
             } while (sub_sscan_index != 0);
@@ -133,7 +133,24 @@ int add_elements_to_as(aerospike *p_as, as_ldt *p_lset, char *str_key, size_t co
     as_key_init_str(&g_key, g_namespace, g_set, str_key);
 
     static as_error err;
+    as_string sval;
 
+    for (size_t i=0; i<count; i++) {
+        LOG("add key %s - %s", str_key, elements[i]->str);
+
+        as_string_init(&sval, elements[i]->str, false);
+
+        if (aerospike_lset_add(p_as, &err, NULL, &g_key, p_lset,
+                    (const as_val*)&sval) != AEROSPIKE_OK) {
+            if (err.code != AEROSPIKE_ERR_UDF) {
+                ERROR("aerospike_set_add() returned %d - %s", err.code,
+                    err.message);
+                return -2;
+            }
+        }
+    }
+
+#if 0
     as_arraylist vals;
     as_arraylist_inita(&vals, count);
 
@@ -145,11 +162,25 @@ int add_elements_to_as(aerospike *p_as, as_ldt *p_lset, char *str_key, size_t co
     // Add a string value to the set.
     if (aerospike_lset_add_all(p_as, &err, NULL, &g_key, p_lset,
                 (const as_list*)&vals) != AEROSPIKE_OK) {
-        ERROR("aerospike_set_add_all() returned %d - %s", err.code,
-                err.message);
-        return -2;
+        if (err.code != AEROSPIKE_ERR_UDF) {
+            ERROR("aerospike_set_add_all() returned %d - %s", err.code,
+                    err.message);
+            return -2;
+        }
     }
     as_arraylist_destroy(&vals);
+
+#endif
+
+    if (1) {
+        uint32_t count = 0;
+        if(aerospike_lset_size(p_as, &err, NULL, &g_key, p_lset, &count) != AEROSPIKE_OK) {
+            ERROR("get count failed");
+            return -3;
+        }
+        ERROR("key %s count after add %32u", str_key, count);
+    }
+
     return 0;
 }
 
