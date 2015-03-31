@@ -2,7 +2,7 @@
  *
  * usage:
  *
- * env -i REDIS_HOST="localhost" REDIS_PORT=6379  ./target/example -h 10.37.129.10 -n topic
+ * env -i REDIS_HOST="localhost" REDIS_PORT=6379 ./target/example -h 10.37.129.10 -n topic -s topic
  *
  * ***********************************/
 
@@ -29,8 +29,8 @@
 #include <errno.h>
 #include <hiredis/hiredis.h>
 
-#undef LOG
-#define LOG(...) (void)0
+//#undef LOG
+//#define LOG(...) (void)0
 #define ERROR(_fmt, _args...) { printf(_fmt "\n", ## _args); fflush(stdout); }
 
 static 
@@ -54,7 +54,7 @@ main(int argc, char* argv[])
     // Create a large set object to use. No need to destroy lset if using
     // as_ldt_init() on stack object.
     as_ldt lset;
-    if (! as_ldt_init(&lset, "mylset", AS_LDT_LSET, NULL)) {
+    if (! as_ldt_init(&lset, "lset", AS_LDT_LSET, NULL)) {
         ERROR("unable to initialize ldt");
         // example_cleanup(&as);
         exit(-1);
@@ -125,23 +125,27 @@ int add_elements_to_as(aerospike *p_as, as_ldt *p_lset, char *str_key, size_t co
 {
     if (!str_key) return 0;
 
+    size_t len = strlen(str_key);
+
     if (!elements && !count) {
         ERROR("no elements (%x) or count (%u)", count, elements);
         return -1;
     }
 
-    as_key_init_str(&g_key, g_namespace, g_set, str_key);
+    as_key_init_rawp(&g_key, g_namespace, g_set, str_key, len, false);
 
     static as_error err;
-    as_string sval;
+    //as_string sval;
+    as_bytes bval;
 
     for (size_t i=0; i<count; i++) {
-        LOG("add key %s - %s", str_key, elements[i]->str);
+        LOG("add key %s(%u) - %s(%u)", str_key, len, elements[i]->str, elements[i]->len);
 
-        as_string_init(&sval, elements[i]->str, false);
+        //as_string_init(&sval, elements[i]->str, false);
+        as_bytes_init_wrap(&bval, elements[i]->str, elements[i]->len, false);
 
         if (aerospike_lset_add(p_as, &err, NULL, &g_key, p_lset,
-                    (const as_val*)&sval) != AEROSPIKE_OK) {
+                    (const as_val*)&bval) != AEROSPIKE_OK) {
             if (err.code != AEROSPIKE_ERR_UDF) {
                 ERROR("aerospike_set_add() returned %d - %s", err.code,
                     err.message);
@@ -178,7 +182,7 @@ int add_elements_to_as(aerospike *p_as, as_ldt *p_lset, char *str_key, size_t co
             ERROR("get count failed");
             return -3;
         }
-        ERROR("key %s count after add %32u", str_key, count);
+        ERROR("key %s count after add %u", str_key, count);
     }
 
     return 0;
