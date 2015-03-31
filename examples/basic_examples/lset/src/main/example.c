@@ -127,7 +127,7 @@ int add_elements_to_as(aerospike *p_as, as_ldt *p_lset, char *str_key, size_t co
 
     size_t len = strlen(str_key);
 
-    if (!elements && !count) {
+    if (!elements || !count) {
         ERROR("no elements (%x) or count (%u)", count, elements);
         return -1;
     }
