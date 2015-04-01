@@ -29,8 +29,8 @@
 #include <errno.h>
 #include <hiredis/hiredis.h>
 
-//#undef LOG
-//#define LOG(...) (void)0
+#undef LOG
+#define LOG(...) (void)0
 #define ERROR(_fmt, _args...) { printf(_fmt "\n", ## _args); fflush(stdout); }
 
 static 
@@ -90,9 +90,10 @@ main(int argc, char* argv[])
     LOG("PING: %s\n", reply->str);
     freeReplyObject(reply);
 
+#define SCAN_COUNT (100)
     /* Set a key */
     long scan_index = 0;
-    reply = redisCommand(c,"SCAN %ld", scan_index);
+    reply = redisCommand(c,"SCAN %ld COUNT %u", scan_index, SCAN_COUNT);
     freeReplyObject(reply);
 
     do {
@@ -106,7 +107,7 @@ main(int argc, char* argv[])
 
             long sub_sscan_index = 0;
             do {
-                redisReply *sub_reply = redisCommand(c,"SSCAN %s %ld", str_key, sub_sscan_index);
+                redisReply *sub_reply = redisCommand(c,"SSCAN %s %ld COUNT %u", str_key, sub_sscan_index, SCAN_COUNT);
                 sub_sscan_index = atol(sub_reply->element[0]->str);
                 LOG("SSCAN %s %ld : %s %u\n", str_key, sub_sscan_index, sub_reply->element[0]->str, (unsigned)sub_reply->element[1]->elements);
 
