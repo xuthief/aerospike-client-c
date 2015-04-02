@@ -129,7 +129,7 @@ int add_elements_to_as(aerospike *p_as, as_ldt *p_lset, char *str_key, size_t co
     size_t len = strlen(str_key);
 
     if (!elements || !count) {
-        ERROR("no elements (%x) or count (%u)", count, elements);
+        ERROR("no elements (%x) or count (%u)", elements, count);
         return -1;
     }
 
@@ -138,6 +138,15 @@ int add_elements_to_as(aerospike *p_as, as_ldt *p_lset, char *str_key, size_t co
     static as_error err;
     //as_string sval;
     as_bytes bval;
+    as_policy_apply policy;
+
+    if (!as_policy_apply_init(&policy)){
+        ERROR("init policy failed");
+        return -5;
+    }
+
+#define LDT_TIMEOUT (9000)
+    policy.timeout = LDT_TIMEOUT;
 
     for (size_t i=0; i<count; i++) {
         LOG("add key %s(%u) - %s(%u)", str_key, len, elements[i]->str, elements[i]->len);
@@ -145,7 +154,7 @@ int add_elements_to_as(aerospike *p_as, as_ldt *p_lset, char *str_key, size_t co
         //as_string_init(&sval, elements[i]->str, false);
         as_bytes_init_wrap(&bval, elements[i]->str, elements[i]->len, false);
 
-        if (aerospike_lset_add(p_as, &err, NULL, &g_key, p_lset,
+        if (aerospike_lset_add(p_as, &err, &policy, &g_key, p_lset,
                     (const as_val*)&bval) != AEROSPIKE_OK) {
             if (err.code != AEROSPIKE_ERR_UDF) {
                 ERROR("aerospike_set_add() returned %d - %s", err.code,
